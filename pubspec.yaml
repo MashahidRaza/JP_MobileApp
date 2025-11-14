@@ -1,0 +1,49 @@
+name: book_series_app
+description: A book series app with authentication
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  flutter_svg: ^2.0.7
+  google_fonts: ^4.0.4
+  provider: ^6.0.5
+  http: ^1.1.0
+  shared_preferences: ^2.2.2
+  intl: ^0.18.1
+  url_launcher: ^6.2.5
+  image_picker: ^1.0.4
+  path_provider: ^2.1.1
+  dio: ^5.0.0
+  file_icon: ^1.0.0
+  open_filex: ^4.4.0   # ✅ add this to open local files via FileProvider
+  dropdown_search: ^5.0.6   # ✅ added here
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/background.jpeg
+    - assets/images/logo.png
+    - assets/images/folder_icon.png
+    - assets/images/google.png
+    - assets/images/linkedin.png
+    - assets/images/facebook.png
+    - assets/images/home.png
+    - assets/images/logout.png
+    - assets/images/message.png
+    - assets/images/notification.png
+    - assets/images/setting.png
+    - assets/images/profile.png
