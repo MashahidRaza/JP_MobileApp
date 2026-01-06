@@ -1,44 +1,53 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../main_navigation_screen.dart';
 import '../../widgets/auth_field.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/app_drawer.dart'; // Import the AppDrawer
+import '../../widgets/app_drawer.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
-
+  final String email;
+  const ChangePasswordScreen({super.key, required this.email});
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final AuthService _authService = AuthService();
-  final TextEditingController _currentPasswordController = TextEditingController();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmNewPasswordController = TextEditingController();
+
+  final TextEditingController _currentPasswordController =
+  TextEditingController();
+  final TextEditingController _newPasswordController =
+  TextEditingController();
+  final TextEditingController _confirmNewPasswordController =
+  TextEditingController();
+
   bool _isLoading = false;
 
   void _showMessage(String message, {bool shouldRedirect = false}) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Notification'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                if (shouldRedirect) {
-                  Navigator.pop(context); // Redirect back to the previous screen
-                }
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => AlertDialog(
+        title: const Text('Message'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop(); // close dialog
+
+              if (shouldRedirect) {
+                // SAFELY change tab instead of popping navigator
+                MainNavigationScreen.of(context)?.changeTab(0);
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
+
 
   void _changePassword() async {
     if (_newPasswordController.text != _confirmNewPasswordController.text) {
@@ -46,25 +55,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     final response = await _authService.changePassword(
       _currentPasswordController.text.trim(),
       _newPasswordController.text.trim(),
     );
 
-    setState(() {
-      _isLoading = false;
-    });
+
+
+    setState(() => _isLoading = false);
 
     if (response != null && response['status'] == 'Success') {
-      _showMessage(response['message'], shouldRedirect: true); // Redirect after showing message
+      _showMessage(response['message'], shouldRedirect: true);
     } else {
       _showMessage(response?['message'] ?? 'Password change failed!');
     }
   }
+
 
   @override
   void dispose() {
@@ -76,104 +83,165 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final width = media.size.width;
+
+    final double scale = width / 430;
+    double responsive(double size) => size * scale;
+
+    final bool isVerySmall = width < 350;
+
     return Scaffold(
-      appBar: AppBar( // Add AppBar for drawer access
-        title: const Text('Change Password'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu), // Icon to open the drawer
-          onPressed: () {
-            Scaffold.of(context).openDrawer(); // Open the drawer
-          },
-        ),
-      ),
-      drawer: const AppDrawer(), // Add AppDrawer here
-      body: Container(
-        width: double.infinity, // Ensure full width
-        height: MediaQuery.of(context).size.height, // Full screen height
-        decoration: BoxDecoration(
-          color: Colors.brown, // Set background color (brown)
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.jpeg'),
-            fit: BoxFit.cover, // Ensure the image covers the full screen
-          ),
-        ),
-        child: Center( // Center the content
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Take minimum space
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Logo
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 100,
+      drawer: const AppDrawer(),
+      body: Stack(
+        children: [
+          // ================= TOP GRADIENT =================
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: responsive(120),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFED3237),
+                    Color(0x00FFFFFF),
+                  ],
+                  stops: [0.0, 0.84],
                 ),
-                const SizedBox(height: 20),
-
-                const Text(
-                  'Change Password',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Text color changed to white for visibility
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Form Fields
-                AuthField(
-                  controller: _currentPasswordController,
-                  hintText: 'Current Password',
-                  isPassword: true,
-                  fillColor: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                AuthField(
-                  controller: _newPasswordController,
-                  hintText: 'New Password',
-                  isPassword: true,
-                  fillColor: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                AuthField(
-                  controller: _confirmNewPasswordController,
-                  hintText: 'Confirm New Password',
-                  isPassword: true,
-                  fillColor: Colors.white,
-                ),
-
-                const SizedBox(height: 30),
-
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD32F2F), // Red
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: _isLoading ? null : _changePassword,
-                    child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Change Password',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // ================= VECTOR 7 =================
+          Positioned(
+            top: responsive(-60),
+            right: responsive(-220),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..scale(-1.0, 1.0)
+                ..rotateZ(27.37 * math.pi / 180),
+              child: SizedBox(
+                width: responsive(847.9),
+                height: responsive(347.6),
+                child: Image.asset('assets/images/Vector7.png',
+                    fit: BoxFit.fill),
+              ),
+            ),
+          ),
+
+          // ================= VECTOR 8 =================
+          Positioned(
+            top: responsive(520),
+            left: responsive(-200),
+            child: Transform.rotate(
+              angle: -12.24 * math.pi / 180,
+              child: SizedBox(
+                width: responsive(847.9),
+                height: responsive(347.6),
+                child: Image.asset('assets/images/vector8.png',
+                    fit: BoxFit.fill),
+              ),
+            ),
+          ),
+
+          // ================= LOGO ROW =================
+          Positioned(
+            top: media.padding.top + responsive(10),
+            left: responsive(16),
+            right: responsive(16),
+            child: Visibility(
+              visible: !isVerySmall,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset('assets/images/insp.png',
+                      width: responsive(90)),
+                  Image.asset('assets/images/stem.png',
+                      width: responsive(60)),
+                  Image.asset('assets/images/javed.png',
+                      width: responsive(70)),
+                ],
+              ),
+            ),
+          ),
+
+          // ================= CONTENT =================
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              responsive(16),
+              media.padding.top + responsive(120),
+              responsive(16),
+              responsive(16),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Change Password',
+                    style: GoogleFonts.poppins(
+                      fontSize: responsive(24),
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF871C1F),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  AuthField(
+                    controller: _currentPasswordController,
+                    hintText: 'Current Password',
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AuthField(
+                    controller: _newPasswordController,
+                    hintText: 'New Password',
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 16),
+
+                  AuthField(
+                    controller: _confirmNewPasswordController,
+                    hintText: 'Confirm New Password',
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 30),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFED3237),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: _isLoading ? null : _changePassword,
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                          color: Colors.white)
+                          : const Text(
+                        'Change Password',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

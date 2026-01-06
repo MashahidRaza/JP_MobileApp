@@ -1,14 +1,31 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-android {
-    namespace = "com.example.book_series_app"
-    compileSdk = 35                      // ⬅️ updated from 34 → 35
+// load keystore
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
+android {
+    namespace = "com.rza.bookseriesapp"
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
+
+    defaultConfig {
+        applicationId = "com.rza.bookseriesapp"
+        minSdk = 21
+        targetSdk = 35
+        versionCode = 16
+        versionName = "1.0.15"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -19,21 +36,23 @@ android {
         jvmTarget = "11"
     }
 
-    defaultConfig {
-        applicationId = "com.example.book_series_app"
-        minSdk = 21                      // keep 21 for older devices (set 29 if you want Android 10+ only)
-        targetSdk = 35                   // ⬅️ updated from 34 → 35
-        versionCode = 1
-        versionName = "1.0.0"
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
     }
 
     buildTypes {
-        debug {
-            signingConfig = signingConfigs.getByName("debug")
+        val debug by getting {
+            signingConfig = signingConfigs["debug"]
         }
-        release {
-            // for testing only — don’t use this for Play Store uploads
-            signingConfig = signingConfigs.getByName("debug")
+        val release by getting {
+            signingConfig = signingConfigs["release"]
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

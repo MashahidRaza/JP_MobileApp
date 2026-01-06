@@ -72,7 +72,6 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 // Logout section with divider above
                 Column(
                   children: [

@@ -4,10 +4,22 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/splash_screen.dart'; // ✅ Add this line
+import 'screens/splash_screen.dart';
+
+// 🔐 AUTH
+import 'services/auth_service.dart';
+import 'services/session_watcher.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final authService = AuthService();
+
+  // 🔥 START SESSION WATCHER (GLOBAL)
+  WidgetsBinding.instance.addObserver(
+    SessionWatcher(authService),
+  );
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
     runApp(const MyApp());
@@ -47,7 +59,8 @@ class MyApp extends StatelessWidget {
         ),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         labelStyle: TextStyle(color: Colors.grey[600]),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -55,7 +68,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: seedColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -101,8 +115,8 @@ class MyApp extends StatelessWidget {
       ),
       scaffoldBackgroundColor: const Color(0xFF121212),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-      cardTheme: CardThemeData(
-        color: const Color(0xFF1E1E1E),
+      cardTheme: const CardThemeData(
+        color: Color(0xFF1E1E1E),
         surfaceTintColor: Colors.transparent,
       ),
       chipTheme: ChipThemeData.fromDefaults(
@@ -126,15 +140,17 @@ class MyApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: ThemeMode.light,
 
-      // ✅ Start with Splash Screen
+      // 🔑 IMPORTANT: GLOBAL NAVIGATOR KEY
+      navigatorKey: AuthService.navigatorKey,
+
+      // ✅ Splash decides login/home
       home: const SplashScreen(),
 
       routes: {
-        '/home': (context) => const HomeScreen(),
-        '/login': (context) => const LoginScreen(),
+        '/home': (_) => const HomeScreen(),
+        '/login': (_) => const LoginScreen(),
       },
-      localizationsDelegates: const [
-      ],
+
       supportedLocales: const [
         Locale('en', 'US'),
         Locale('ar', 'SA'),
